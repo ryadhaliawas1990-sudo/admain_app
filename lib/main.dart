@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const AdminApp());
+  runApp(const MyApp());
 }
 
-class AdminApp extends StatelessWidget {
-  const AdminApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'نظام إداري',
+      title: 'النظام الإداري',
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.blue,
@@ -21,96 +21,103 @@ class AdminApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController numberController = TextEditingController();
+
+  final List<Map<String, String>> people = [];
+
+  void addPerson() {
+    final name = nameController.text.trim();
+    final number = numberController.text.trim();
+
+    if (name.isEmpty || number.isEmpty) return;
+
+    setState(() {
+      people.add({
+        "name": name,
+        "number": number,
+      });
+
+      nameController.clear();
+      numberController.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('النظام الإداري'),
+        title: const Text("النظام الإداري"),
+        centerTitle: true,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
+
         child: Column(
           children: [
+
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: "اسم الفرد",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
             const SizedBox(height: 10),
 
-            _buildCard(
-              context,
-              title: "قسم البشرية",
-              icon: Icons.people,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SectionScreen(title: "البشرية"),
-                  ),
-                );
-              },
+            TextField(
+              controller: numberController,
+              decoration: const InputDecoration(
+                labelText: "رقم الفرد",
+                border: OutlineInputBorder(),
+              ),
             ),
 
-            _buildCard(
-              context,
-              title: "قسم الفنية والتسليح",
-              icon: Icons.build,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SectionScreen(title: "الفنية والتسليح"),
-                  ),
-                );
-              },
+            const SizedBox(height: 10),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: addPerson,
+                child: const Text("إضافة"),
+              ),
             ),
 
-            _buildCard(
-              context,
-              title: "قسم الإمداد والمحروقات",
-              icon: Icons.local_gas_station,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SectionScreen(title: "الإمداد والمحروقات"),
-                  ),
-                );
-              },
+            const SizedBox(height: 20),
+
+            Expanded(
+              child: people.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "لا توجد بيانات",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: people.length,
+                      itemBuilder: (context, index) {
+                        final item = people[index];
+
+                        return Card(
+                          child: ListTile(
+                            title: Text(item["name"]!),
+                            subtitle: Text("رقم: ${item["number"]}"),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard(BuildContext context,
-      {required String title,
-      required IconData icon,
-      required VoidCallback onTap}) {
-    return Card(
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-class SectionScreen extends StatelessWidget {
-  final String title;
-
-  const SectionScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          "صفحة $title - سيتم إضافة الإدخال والمباينة لاحقًا",
-          textAlign: TextAlign.center,
         ),
       ),
     );
