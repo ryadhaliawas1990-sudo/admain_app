@@ -1,106 +1,111 @@
 import 'package:flutter/material.dart';
-import 'hr_screen.dart';
-import 'report_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HrScreen extends StatefulWidget {
+  const HrScreen({super.key});
+
+  @override
+  State<HrScreen> createState() => _HrScreenState();
+}
+
+class _HrScreenState extends State<HrScreen> {
+  final nameController = TextEditingController();
+  final numberController = TextEditingController();
+  final rankController = TextEditingController();
+  final unitController = TextEditingController();
+  final statusController = TextEditingController();
+
+  List<Map<String, String>> people = [];
+
+  void addPerson() {
+    setState(() {
+      people.add({
+        "name": nameController.text,
+        "number": numberController.text,
+        "rank": rankController.text,
+        "unit": unitController.text,
+        "status": statusController.text,
+      });
+
+      nameController.clear();
+      numberController.clear();
+      rankController.clear();
+      unitController.clear();
+      statusController.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("النظام الإداري"),
+        title: const Text("الموارد البشرية"),
         centerTitle: true,
       ),
 
       body: Padding(
         padding: const EdgeInsets.all(12),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          children: [
-
-            _card(
-              context,
-              "الموارد البشرية",
-              Icons.people,
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HrScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _card(
-              context,
-              "المباينة",
-              Icons.assignment,
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ReportScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _card(
-              context,
-              "الفنية والتسليح",
-              Icons.build,
-              () {},
-            ),
-
-            _card(
-              context,
-              "الإمداد والمحروقات",
-              Icons.local_gas_station,
-              () {},
-            ),
-          ],
-        ),
-      ),
-
-      bottomNavigationBar: const Padding(
-        padding: EdgeInsets.all(8),
-        child: Text(
-          "م/رياض عواس - 781927044",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12),
-        ),
-      ),
-    );
-  }
-
-  Widget _card(
-    BuildContext context,
-    String title,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 50),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: "اسم الضابط / الفرد",
+              ),
+            ),
+
+            TextField(
+              controller: numberController,
+              decoration: const InputDecoration(
+                labelText: "رقم الضابط / الفرد",
+              ),
+            ),
+
+            TextField(
+              controller: rankController,
+              decoration: const InputDecoration(
+                labelText: "الرتبة",
+              ),
+            ),
+
+            TextField(
+              controller: unitController,
+              decoration: const InputDecoration(
+                labelText: "الوحدة",
+              ),
+            ),
+
+            TextField(
+              controller: statusController,
+              decoration: const InputDecoration(
+                labelText: "الحالة",
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: addPerson,
+              child: const Text("إضافة"),
+            ),
+
+            const SizedBox(height: 20),
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: people.length,
+                itemBuilder: (context, index) {
+                  final p = people[index];
+
+                  return Card(
+                    child: ListTile(
+                      title: Text(p["name"] ?? ""),
+                      subtitle: Text(
+                        "رقم: ${p["number"]} | رتبة: ${p["rank"]} | وحدة: ${p["unit"]} | حالة: ${p["status"]}",
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],

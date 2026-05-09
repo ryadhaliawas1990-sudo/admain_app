@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../db/app_db.dart';
-import 'add_status_screen.dart';
+import '../db/db_helper.dart';
+import '../export/excel_export.dart';
 
 class HrScreen extends StatefulWidget {
   const HrScreen({super.key});
@@ -10,82 +10,142 @@ class HrScreen extends StatefulWidget {
 }
 
 class _HrScreenState extends State<HrScreen> {
+  final nameController = TextEditingController();
+  final numberController = TextEditingController();
+  final rankController = TextEditingController();
+  final unitController = TextEditingController();
+  final statusController = TextEditingController();
 
-  List<Map<String, dynamic>> persons = [];
-
-  final name = TextEditingController();
-  final number = TextEditingController();
+  List<Map<String, dynamic>> people = [];
 
   @override
   void initState() {
     super.initState();
-    load();
+    loadData();
   }
 
-  Future<void> load() async {
-    persons = await AppDB.getPersons();
-    setState(() {});
+  Future<void> loadData() async {
+    final data = await DBHelper.getPeople();
+
+    setState(() {
+      people = data;
+    });
   }
 
-  Future<void> add() async {
-    await AppDB.addPerson(name.text, number.text);
-    name.clear();
-    number.clear();
-    load();
+  Future<void> addPerson() async {
+    await DBHelper.insertPerson({
+      "name": nameController.text,
+      "number": numberController.text,
+      "rank": rankController.text,
+      "unit": unitController.text,
+      "status": statusController.text,
+    });
+
+    nameController.clear();
+    numberController.clear();
+    rankController.clear();
+    unitController.clear();
+    statusController.clear();
+
+    loadData();
+  }
+
+  Future<void> exportExcel() async {
+    final path = await ExcelExport.exportPeople();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("تم حفظ ملف Excel:\n$path"),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("الموارد البشرية")),
+      appBar: AppBar(
+        title: const Text("الموارد البشرية"),
+        centerTitle: true,
+      ),
 
-      body: Column(
-        children: [
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
 
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-
-                TextField(controller: name, decoration: const InputDecoration(labelText: "الاسم")),
-                TextField(controller: number, decoration: const InputDecoration(labelText: "الرقم")),
-
-                ElevatedButton(
-                  onPressed: add,
-                  child: const Text("إضافة فرد"),
-                ),
-
-              ],
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: "اسم الضابط / الفرد",
+              ),
             ),
-          ),
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: persons.length,
-              itemBuilder: (c, i) {
-                final p = persons[i];
-
-                return ListTile(
-                  title: Text(p["name"]),
-                  subtitle: Text(p["number"]),
-
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit_calendar),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AddStatusScreen(personId: p["id"]),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+            TextField(
+              controller: numberController,
+              decoration: const InputDecoration(
+                labelText: "رقم الضابط / الفرد",
+              ),
             ),
-          ),
 
-        ],
+            TextField(
+              controller: rankController,
+              decoration: const InputDecoration(
+                labelText: "الرتبة",
+              ),
+            ),
+
+            TextField(
+              controller: unitController,
+              decoration: const InputDecoration(
+                labelText: "الوحدة",
+              ),
+            ),
+
+            TextField(
+              controller: statusController,
+              decoration: const InputDecoration(
+                labelText: "الحالة",
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: addPerson,
+              child: const Text("إضافة وحفظ"),
+            ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: exportExcel,
+              child: const Text("تصدير Excel"),
+            ),
+
+            const SizedBox(height: 20),
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: people.length,
+                itemBuilder: (context, index) {
+
+                  final p = people[index];
+
+                  return Card(
+                    child: ListTile(
+                      title: Text(p["name"] ?? ""),
+                      subtitle: Text(
+                        "رقم: ${p["number"]} | رتبة: ${p["rank"]} | وحدة: ${p["unit"]} | حالة: ${p["status"]}",
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
